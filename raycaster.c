@@ -6,6 +6,12 @@
 #define WIDTH 800
 #define HEIGHT 800
 
+typedef struct	s_rays
+{
+	float	x;
+	float	y;
+}				t_rays;
+
 typedef struct s_player
 {
 	float	x;
@@ -13,6 +19,7 @@ typedef struct s_player
 	float	ang;
 	float	dx;
 	float	dy;
+	t_rays	r;
 }				t_player;
 typedef struct s_vars
 {
@@ -58,7 +65,7 @@ void	drawPlayer()
 {
 	vars.p.dx = cos(vars.p.ang) * 5;
 	vars.p.dy = sin(vars.p.ang) * 5;
-	glColor3f(0, 1, 1);
+	glColor3f(1, 1, 0);
 	glPointSize(10);
 	glBegin(GL_POINTS);
 	glVertex2i(vars.p.x, vars.p.y);
@@ -70,6 +77,101 @@ void	drawPlayer()
 	glEnd();
 }
 
+void DrawCircle(void)
+{
+	float	angle;
+	
+	angle = vars.p.ang;
+	
+}
+
+void	drawRays()
+{
+	float	angle;
+	int		walls;
+	int		rows;
+	int		cols;
+	int		dof;
+	
+	angle = vars.p.ang;
+	walls = 0;
+	rows = 0;
+	cols = 0;
+	dof = 0;
+	glColor3f(0, 1, 0);
+	glLineWidth(1);
+	while (dof < 3)
+	{
+		angle -= (10 * PI / 180);
+		if (angle < 2 * PI)
+			angle += 2 * PI;
+		vars.p.dx = cos(angle) * 5;
+		vars.p.dy = sin(angle) * 5;
+		vars.p.r.x = vars.p.x + vars.p.dx;
+		vars.p.r.y = vars.p.y + vars.p.dy;
+		walls = 0;
+		while (!walls)
+		{
+			rows = (int)(vars.p.r.x * 8 / WIDTH);
+			cols = (int)(vars.p.r.y * 8 / HEIGHT);
+			if (vars.maps[cols][rows] == '1')
+				walls = 1;
+			vars.p.r.x += vars.p.dx;
+			vars.p.r.y += vars.p.dy;
+		}
+		glBegin(GL_LINES);
+		glVertex2i(vars.p.x, vars.p.y);
+		glVertex2i(vars.p.r.x, vars.p.r.y);
+		glEnd();
+		dof++;
+	}
+	angle = vars.p.ang;
+	vars.p.dx = cos(angle) * 5;
+	vars.p.dy = sin(angle) * 5;
+	vars.p.r.x = vars.p.x + vars.p.dx;
+	vars.p.r.y = vars.p.y + vars.p.dy;
+	walls = 0;
+	while (!walls)
+	{
+		rows = (int)(vars.p.r.x * 8 / WIDTH);
+		cols = (int)(vars.p.r.y * 8 / HEIGHT);
+		if (vars.maps[cols][rows] == '1')
+			walls = 1;
+		vars.p.r.x += vars.p.dx;
+		vars.p.r.y += vars.p.dy;
+	}
+	glBegin(GL_LINES);
+	glVertex2i(vars.p.x, vars.p.y);
+	glVertex2i(vars.p.r.x, vars.p.r.y);
+	glEnd();
+	while (dof < 6)
+	{
+		angle += (10 * PI / 180);
+		if (angle < 2 * PI)
+			angle += 2 * PI;
+		vars.p.dx = cos(angle) * 5;
+		vars.p.dy = sin(angle) * 5;
+		vars.p.r.x = vars.p.x + vars.p.dx;
+		vars.p.r.y = vars.p.y + vars.p.dy;
+		walls = 0;
+		while (!walls)
+		{
+			rows = (int)(vars.p.r.x * 8 / WIDTH);
+			cols = (int)(vars.p.r.y * 8 / HEIGHT);
+			if (vars.maps[cols][rows] == '1')
+				walls = 1;
+			vars.p.r.x += vars.p.dx;
+			vars.p.r.y += vars.p.dy;
+		}
+		glBegin(GL_LINES);
+		glVertex2i(vars.p.x, vars.p.y);
+		glVertex2i(vars.p.r.x, vars.p.r.y);
+		glEnd();
+		dof++;
+	}
+	DrawCircle();
+}
+
 void	buttons(unsigned char key, int x, int y)
 {
 	int	row;
@@ -78,34 +180,65 @@ void	buttons(unsigned char key, int x, int y)
 	{
 		vars.p.dx = cos(vars.p.ang) * 5;
 		vars.p.dy = sin(vars.p.ang) * 5;
-		printf("Change in X: %f, Change in Y: %f\n", vars.p.dx, vars.p.dy);
 		if ((vars.p.x + vars.p.dx > 0) && (vars.p.x + vars.p.dx < WIDTH)
 		&& (vars.p.y + vars.p.dy > 0) && (vars.p.y + vars.p.dy < HEIGHT))
 		{
+			row = (int)((vars.p.x + vars.p.dx) * 8 / WIDTH);
+			col = (int)((vars.p.y + vars.p.dy) * 8 / HEIGHT);
+			if (vars.maps[col][row] == '1')
+				return ;
 			vars.p.x += vars.p.dx;
 			vars.p.y += vars.p.dy;
-			printf("X: %f, Y: %f\n", vars.p.x, vars.p.y);
-			row = (int)(vars.p.x * 8 / WIDTH);
-			col = (int)(vars.p.y * 8 / HEIGHT);
-			printf("Row: %d, Col: %d\n", row, col);
+			vars.maps[col][row] = '0';
 		}
 	}
 	else if (key == 's')
 	{
 		vars.p.dx = cos(vars.p.ang) * 5;
 		vars.p.dy = sin(vars.p.ang) * 5;
-		vars.p.x -= vars.p.dx;
-		vars.p.y -= vars.p.dy;
+		if ((vars.p.x + vars.p.dx > 0) && (vars.p.x + vars.p.dx < WIDTH)
+		&& (vars.p.y + vars.p.dy > 0) && (vars.p.y + vars.p.dy < HEIGHT))
+		{
+			row = (int)((vars.p.x - vars.p.dx) * 8 / WIDTH);
+			col = (int)((vars.p.y - vars.p.dy) * 8 / HEIGHT);
+			if (vars.maps[col][row] == '1')
+				return ;
+			vars.p.x -= vars.p.dx;
+			vars.p.y -= vars.p.dy;
+			vars.maps[col][row] = '0';
+		}
 	}
 	else if (key == 'd')
 	{
-		vars.p.x -= -cos((PI / 2) + (vars.p.ang)) * 5;
-		vars.p.y -= -sin((PI / 2) + (vars.p.ang)) * 5;
+		vars.p.dx = cos((PI / 2) + (vars.p.ang)) * 5;
+		vars.p.dy = sin((PI / 2) + (vars.p.ang)) * 5;
+		if ((vars.p.x + vars.p.dx > 0) && (vars.p.x + vars.p.dx < WIDTH)
+		&& (vars.p.y + vars.p.dy > 0) && (vars.p.y + vars.p.dy < HEIGHT))
+		{
+			row = (int)((vars.p.x + vars.p.dx) * 8 / WIDTH);
+			col = (int)((vars.p.y + vars.p.dy) * 8 / HEIGHT);
+			if (vars.maps[col][row] == '1')
+				return ;
+			vars.p.x += vars.p.dx;
+			vars.p.y += vars.p.dy;
+			vars.maps[col][row] = '0';
+		}
 	}
 	else if (key == 'a')
 	{
-		vars.p.x -= cos((PI / 2) + (vars.p.ang)) * 5;
-		vars.p.y -= sin((PI / 2) + (vars.p.ang)) * 5;
+		vars.p.dx = cos((PI / 2) + (vars.p.ang)) * 5;
+		vars.p.dy = sin((PI / 2) + (vars.p.ang)) * 5;
+		if ((vars.p.x - vars.p.dx > 0) && (vars.p.x - vars.p.dx < WIDTH)
+		&& (vars.p.y - vars.p.dy > 0) && (vars.p.y - vars.p.dy < HEIGHT))
+		{
+			row = (int)((vars.p.x - vars.p.dx) * 8 / WIDTH);
+			col = (int)((vars.p.y - vars.p.dy) * 8 / HEIGHT);
+			if (vars.maps[col][row] == '1')
+				return ;
+			vars.p.x -= vars.p.dx;
+			vars.p.y -= vars.p.dy;
+			vars.maps[col][row] = '0';
+		}
 	}
 	else if (key == 'k')
 	{
@@ -127,6 +260,7 @@ void	display()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	drawMap2D();
+	drawRays();
 	drawPlayer();
 	glutSwapBuffers();
 }
@@ -156,8 +290,8 @@ void	init()
 				break;
 		i++;
 	}
-	vars.p.x = j * (WIDTH/8);
-	vars.p.y = i * (HEIGHT/8);
+	vars.p.x = j * (WIDTH/8) + (WIDTH / 16);
+	vars.p.y = i * (HEIGHT/8) + (HEIGHT / 16);
 }
 
 int main(int argc, char **argv)
@@ -166,8 +300,8 @@ int main(int argc, char **argv)
 	
 	vars.maps = malloc(sizeof(char *) * (64 + 1));
 	vars.maps[0] = strdup("11111111");
-	vars.maps[1] = strdup("1000N001");
-	vars.maps[2] = strdup("10000001");
+	vars.maps[1] = strdup("1000N101");
+	vars.maps[2] = strdup("10001001");
 	vars.maps[3] = strdup("10010001");
 	vars.maps[4] = strdup("10000001");
 	vars.maps[5] = strdup("10001001");
