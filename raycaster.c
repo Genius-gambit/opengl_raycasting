@@ -20,6 +20,10 @@ typedef struct s_player
 	float	dx;
 	float	dy;
 	t_rays	r;
+	int		stop_frwrd;
+	int		stop_bckwrd;
+	int		stop_right;
+	int		stop_left;
 }				t_player;
 typedef struct s_vars
 {
@@ -77,13 +81,213 @@ void	drawPlayer()
 	glEnd();
 }
 
-void DrawCircle(void)
+float	max(float a, float b)
+{
+	return (a > b ? a : b);
+}
+
+float	min(float a, float b)
+{
+	return (a < b ? a : b);
+}
+
+void Wall_C_forwrd(void)
 {
 	float	angle;
+	float	x;
+	float	y;
+	int		count = 7;
+	int		row;
+	int		col;
 	
-	angle = vars.p.ang;
 	
+	angle = vars.p.ang - (30 * PI / 180);
+	if (angle < 0)
+		angle += 2 * PI;
+	x = 0;
+	row = 0;
+	col = 0;
+	y = 0;
+	glColor3f(1, 0, 1);
+	glPointSize(2);
+	vars.p.stop_frwrd = 0;
+	printf("Angle: %f\n", angle * 180 / PI);
+	while (count > 0)
+	{
+		printf("Angle: %f\n", angle * 180 / PI);
+		x = vars.p.x + (cos(angle) * 12);
+		y = vars.p.y + (sin(angle) * 12);
+		row = (int)(x * 8 / WIDTH);
+		col = (int)(y * 8 / HEIGHT);
+		if (vars.maps[col][row] == '1')
+			vars.p.stop_frwrd = 1;
+		glBegin(GL_POINTS);
+		glVertex2f(x, y);
+		glEnd();
+		angle += (10 * PI / 180);
+		if (angle > 2 * PI)
+			angle -= 2 * PI;
+		count--;
+	}
 }
+
+void Wall_C_bckwrd(void)
+{
+	float	angle;
+	float	x;
+	float	y;
+	int		count = 7;
+	int		row;
+	int		col;
+	
+	
+	angle = vars.p.ang - (30 * PI / 180) - PI;
+	if (angle < 0)
+		angle += 2 * PI;
+	x = 0;
+	row = 0;
+	col = 0;
+	y = 0;
+	glColor3f(1, 0, 1);
+	glPointSize(2);
+	vars.p.stop_bckwrd = 0;
+	printf("Angle: %f\n", angle * 180 / PI);
+	while (count > 0)
+	{
+		printf("Angle: %f\n", angle * 180 / PI);
+		x = vars.p.x + (cos(angle) * 12);
+		y = vars.p.y + (sin(angle) * 12);
+		row = (int)(x * 8 / WIDTH);
+		col = (int)(y * 8 / HEIGHT);
+		if (vars.maps[col][row] == '1')
+			vars.p.stop_bckwrd = 1;
+		glBegin(GL_POINTS);
+		glVertex2f(x, y);
+		glEnd();
+		angle += (10 * PI / 180);
+		if (angle > 2 * PI)
+			angle -= 2 * PI;
+		count--;
+	}
+}
+
+void Wall_C_left(void)
+{
+	float	angle;
+	float	x;
+	float	y;
+	int		count = 7;
+	int		row;
+	int		col;
+	
+	
+	angle = vars.p.ang - (30 * PI / 180);
+	if (angle < 0)
+		angle += 2 * PI;
+	angle += (3 * PI / 2);
+	if (angle > 2 * PI)
+		angle -= 2 * PI;
+	x = 0;
+	row = 0;
+	col = 0;
+	y = 0;
+	glColor3f(1, 0, 1);
+	glPointSize(2);
+	vars.p.stop_left = 0;
+	printf("Angle: %f\n", angle * 180 / PI);
+	while (count > 0)
+	{
+		printf("Angle: %f\n", angle * 180 / PI);
+		x = vars.p.x + (cos(angle) * 12);
+		y = vars.p.y + (sin(angle) * 12);
+		row = (int)(x * 8 / WIDTH);
+		col = (int)(y * 8 / HEIGHT);
+		if (vars.maps[col][row] == '1')
+			vars.p.stop_left = 1;
+		glBegin(GL_POINTS);
+		glVertex2f(x, y);
+		glEnd();
+		angle += (10 * PI / 180);
+		if (angle > 2 * PI)
+			angle -= 2 * PI;
+		count--;
+	}
+}
+
+void Wall_C_right(void)
+{
+	float	angle;
+	float	x;
+	float	y;
+	int		count = 7;
+	int		row;
+	int		col;
+	
+	
+	angle = vars.p.ang - (30 * PI / 180);
+	if (angle < 0)
+		angle += 2 * PI;
+	angle += (1 * PI / 2);
+	if (angle > 2 * PI)
+		angle -= 2 * PI;
+	x = 0;
+	row = 0;
+	col = 0;
+	y = 0;
+	glColor3f(1, 0, 1);
+	glPointSize(2);
+	vars.p.stop_right = 0;
+	printf("Angle: %f\n", angle * 180 / PI);
+	while (count > 0)
+	{
+		printf("Angle: %f\n", angle * 180 / PI);
+		x = vars.p.x + (cos(angle) * 12);
+		y = vars.p.y + (sin(angle) * 12);
+		row = (int)(x * 8 / WIDTH);
+		col = (int)(y * 8 / HEIGHT);
+		if (vars.maps[col][row] == '1')
+			vars.p.stop_right = 1;
+		glBegin(GL_POINTS);
+		glVertex2f(x, y);
+		glEnd();
+		angle += (10 * PI / 180);
+		if (angle > 2 * PI)
+			angle -= 2 * PI;
+		count--;
+	}
+}
+/*if (angle > 2 * PI)
+			angle -= 2 * PI;
+		x = vars.p.x + (cos(angle) * 12);
+		y = vars.p.y + (sin(angle) * 12);
+		if (count > 45 && count <= 60)
+		{
+			row = (int)(x * 8 / WIDTH);
+			col = (int)(y * 8 / HEIGHT);
+			if (vars.maps[col][row] == '1')
+				vars.p.stop_frwrd = 1;
+		}
+		if (count > 30 && count <= 45)
+		{
+			row = (int)(x * 8 / WIDTH);
+			col = (int)(y * 8 / HEIGHT);
+			if (vars.maps[col][row] == '1')
+				vars.p.stop_right = 1;
+		}
+		if (count > 15 && count <= 30)
+		{
+			row = (int)(x * 8 / WIDTH);
+			col = (int)(y * 8 / HEIGHT);
+			if (vars.maps[col][row] == '1')
+				vars.p.stop_bckwrd = 1;
+		}
+		if (count > 0 && count <= 15)
+		{
+			row = (int)(x * 8 / WIDTH);
+			col = (int)(y * 8 / HEIGHT);
+			if (vars.maps[col][row] == '1')
+				vars.p.stop_left = 1;
+		}*/
 
 void	drawRays()
 {
@@ -169,7 +373,10 @@ void	drawRays()
 		glEnd();
 		dof++;
 	}
-	DrawCircle();
+	Wall_C_forwrd();
+	Wall_C_bckwrd();
+	Wall_C_left();
+	Wall_C_right();
 }
 
 void	buttons(unsigned char key, int x, int y)
@@ -185,7 +392,7 @@ void	buttons(unsigned char key, int x, int y)
 		{
 			row = (int)((vars.p.x + vars.p.dx) * 8 / WIDTH);
 			col = (int)((vars.p.y + vars.p.dy) * 8 / HEIGHT);
-			if (vars.maps[col][row] == '1')
+			if (vars.maps[col][row] == '1' || vars.p.stop_frwrd)
 				return ;
 			vars.p.x += vars.p.dx;
 			vars.p.y += vars.p.dy;
@@ -201,7 +408,7 @@ void	buttons(unsigned char key, int x, int y)
 		{
 			row = (int)((vars.p.x - vars.p.dx) * 8 / WIDTH);
 			col = (int)((vars.p.y - vars.p.dy) * 8 / HEIGHT);
-			if (vars.maps[col][row] == '1')
+			if (vars.maps[col][row] == '1' || vars.p.stop_bckwrd)
 				return ;
 			vars.p.x -= vars.p.dx;
 			vars.p.y -= vars.p.dy;
@@ -217,7 +424,7 @@ void	buttons(unsigned char key, int x, int y)
 		{
 			row = (int)((vars.p.x + vars.p.dx) * 8 / WIDTH);
 			col = (int)((vars.p.y + vars.p.dy) * 8 / HEIGHT);
-			if (vars.maps[col][row] == '1')
+			if (vars.maps[col][row] == '1' || vars.p.stop_right)
 				return ;
 			vars.p.x += vars.p.dx;
 			vars.p.y += vars.p.dy;
@@ -233,7 +440,7 @@ void	buttons(unsigned char key, int x, int y)
 		{
 			row = (int)((vars.p.x - vars.p.dx) * 8 / WIDTH);
 			col = (int)((vars.p.y - vars.p.dy) * 8 / HEIGHT);
-			if (vars.maps[col][row] == '1')
+			if (vars.maps[col][row] == '1' || vars.p.stop_left)
 				return ;
 			vars.p.x -= vars.p.dx;
 			vars.p.y -= vars.p.dy;
