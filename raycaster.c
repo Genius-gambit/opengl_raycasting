@@ -256,38 +256,6 @@ void Wall_C_right(void)
 		count--;
 	}
 }
-/*if (angle > 2 * PI)
-			angle -= 2 * PI;
-		x = vars.p.x + (cos(angle) * 12);
-		y = vars.p.y + (sin(angle) * 12);
-		if (count > 45 && count <= 60)
-		{
-			row = (int)(x * 8 / WIDTH);
-			col = (int)(y * 8 / HEIGHT);
-			if (vars.maps[col][row] == '1')
-				vars.p.stop_frwrd = 1;
-		}
-		if (count > 30 && count <= 45)
-		{
-			row = (int)(x * 8 / WIDTH);
-			col = (int)(y * 8 / HEIGHT);
-			if (vars.maps[col][row] == '1')
-				vars.p.stop_right = 1;
-		}
-		if (count > 15 && count <= 30)
-		{
-			row = (int)(x * 8 / WIDTH);
-			col = (int)(y * 8 / HEIGHT);
-			if (vars.maps[col][row] == '1')
-				vars.p.stop_bckwrd = 1;
-		}
-		if (count > 0 && count <= 15)
-		{
-			row = (int)(x * 8 / WIDTH);
-			col = (int)(y * 8 / HEIGHT);
-			if (vars.maps[col][row] == '1')
-				vars.p.stop_left = 1;
-		}*/
 
 void	drawRays()
 {
