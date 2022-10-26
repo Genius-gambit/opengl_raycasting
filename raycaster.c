@@ -3,13 +3,18 @@
 #include <GL/glut.h>
 #include <math.h>
 #define PI 3.141592653589793238
-#define WIDTH 800
-#define HEIGHT 800
+#define WIDTH 1712
+#define HEIGHT 960
+#define RATIO_Y 107
+#define RATIO_X  
 
 typedef struct	s_rays
 {
-	float	x;
-	float	y;
+	double	x;
+	double	y;
+	double	ang;
+	double	dist;
+	double	height;
 }				t_rays;
 
 typedef struct s_player
@@ -24,6 +29,7 @@ typedef struct s_player
 	int		stop_bckwrd;
 	int		stop_right;
 	int		stop_left;
+	t_rays	rays[849];
 }				t_player;
 typedef struct s_vars
 {
@@ -32,6 +38,15 @@ typedef struct s_vars
 }				t_vars;
 
 t_vars	vars;
+
+void	Draw_line_float(double x_start, double y_start,
+	double x_end, double y_end)
+{
+	glBegin(GL_LINES);
+	glVertex2f(x_start, y_start);
+	glVertex2f(x_end, y_end);
+	glEnd();
+}
 
 void	drawMap2D(void)
 {
@@ -47,7 +62,7 @@ void	drawMap2D(void)
 		j = 0;
 		while (vars.maps[i][j])
 		{
-			xo = j * (WIDTH / 8);
+			xo = j * ((WIDTH / 2) / 8);
 			yo = i * (HEIGHT / 8);
 			if (vars.maps[i][j] == '1')
 				glColor3f(1, 0, 0);
@@ -56,8 +71,8 @@ void	drawMap2D(void)
 			glBegin(GL_QUADS);
 			glVertex2i(xo + 2, yo + 2);
 			glVertex2i(xo + 2, yo + (HEIGHT / 8) - 2);
-			glVertex2i((xo + (WIDTH / 8)) - 2, (yo + (HEIGHT / 8)) - 2);
-			glVertex2i(xo + (WIDTH / 8) - 2, yo + 2);
+			glVertex2i((xo + ((WIDTH / 2) / 8)) - 2, (yo + (HEIGHT / 8)) - 2);
+			glVertex2i(xo + ((WIDTH / 2) / 8) - 2, yo + 2);
 			glEnd();
 			j++;
 		}
@@ -72,12 +87,12 @@ void	drawPlayer()
 	glColor3f(1, 1, 0);
 	glPointSize(10);
 	glBegin(GL_POINTS);
-	glVertex2i(vars.p.x, vars.p.y);
+	glVertex2i(vars.p.x * 107, vars.p.y * 120);
 	glEnd();
 	glLineWidth(3);
 	glBegin(GL_LINES);
-	glVertex2i(vars.p.x, vars.p.y);
-	glVertex2i(vars.p.x + (vars.p.dx * 5), vars.p.y + (vars.p.dy * 5));
+	glVertex2i(vars.p.x * 107, vars.p.y * 120);
+	glVertex2i((vars.p.x * 107) + (vars.p.dx * 5), (vars.p.y * 120) + (vars.p.dy * 5));
 	glEnd();
 }
 
@@ -101,7 +116,7 @@ void Wall_C_forwrd(void)
 	int		col;
 	
 	
-	angle = vars.p.ang - (30 * PI / 180);
+	angle = vars.p.ang - (30 * (PI / 180));
 	if (angle < 0)
 		angle += 2 * PI;
 	x = 0;
@@ -111,18 +126,16 @@ void Wall_C_forwrd(void)
 	glColor3f(1, 0, 1);
 	glPointSize(2);
 	vars.p.stop_frwrd = 0;
-	printf("Angle: %f\n", angle * 180 / PI);
 	while (count > 0)
 	{
-		printf("Angle: %f\n", angle * 180 / PI);
-		x = vars.p.x + (cos(angle) * 12);
-		y = vars.p.y + (sin(angle) * 12);
-		row = (int)(x * 8 / WIDTH);
-		col = (int)(y * 8 / HEIGHT);
+		x = vars.p.x + (cos(angle) * 0.125);
+		y = vars.p.y + (sin(angle) * 0.125);
+		row = (int)x;
+		col = (int)y;
 		if (vars.maps[col][row] == '1')
 			vars.p.stop_frwrd = 1;
 		glBegin(GL_POINTS);
-		glVertex2f(x, y);
+		glVertex2f(x * 107, y * 120);
 		glEnd();
 		angle += (10 * PI / 180);
 		if (angle > 2 * PI)
@@ -151,18 +164,16 @@ void Wall_C_bckwrd(void)
 	glColor3f(1, 0, 1);
 	glPointSize(2);
 	vars.p.stop_bckwrd = 0;
-	printf("Angle: %f\n", angle * 180 / PI);
 	while (count > 0)
 	{
-		printf("Angle: %f\n", angle * 180 / PI);
-		x = vars.p.x + (cos(angle) * 12);
-		y = vars.p.y + (sin(angle) * 12);
-		row = (int)(x * 8 / WIDTH);
-		col = (int)(y * 8 / HEIGHT);
+		x = vars.p.x + (cos(angle) * 0.125);
+		y = vars.p.y + (sin(angle) * 0.125);
+		row = (int)x;
+		col = (int)y;
 		if (vars.maps[col][row] == '1')
 			vars.p.stop_bckwrd = 1;
 		glBegin(GL_POINTS);
-		glVertex2f(x, y);
+		glVertex2f(x * 107, y * 120);
 		glEnd();
 		angle += (10 * PI / 180);
 		if (angle > 2 * PI)
@@ -194,18 +205,16 @@ void Wall_C_left(void)
 	glColor3f(1, 0, 1);
 	glPointSize(2);
 	vars.p.stop_left = 0;
-	printf("Angle: %f\n", angle * 180 / PI);
 	while (count > 0)
 	{
-		printf("Angle: %f\n", angle * 180 / PI);
-		x = vars.p.x + (cos(angle) * 12);
-		y = vars.p.y + (sin(angle) * 12);
-		row = (int)(x * 8 / WIDTH);
-		col = (int)(y * 8 / HEIGHT);
+		x = vars.p.x + (cos(angle) * 0.125);
+		y = vars.p.y + (sin(angle) * 0.125);
+		row = (int)x;
+		col = (int)y;
 		if (vars.maps[col][row] == '1')
 			vars.p.stop_left = 1;
 		glBegin(GL_POINTS);
-		glVertex2f(x, y);
+		glVertex2f(x * 107, y * 120);
 		glEnd();
 		angle += (10 * PI / 180);
 		if (angle > 2 * PI)
@@ -227,7 +236,7 @@ void Wall_C_right(void)
 	angle = vars.p.ang - (30 * PI / 180);
 	if (angle < 0)
 		angle += 2 * PI;
-	angle += (1 * PI / 2);
+	angle += (PI / 2);
 	if (angle > 2 * PI)
 		angle -= 2 * PI;
 	x = 0;
@@ -237,18 +246,16 @@ void Wall_C_right(void)
 	glColor3f(1, 0, 1);
 	glPointSize(2);
 	vars.p.stop_right = 0;
-	printf("Angle: %f\n", angle * 180 / PI);
 	while (count > 0)
 	{
-		printf("Angle: %f\n", angle * 180 / PI);
-		x = vars.p.x + (cos(angle) * 12);
-		y = vars.p.y + (sin(angle) * 12);
-		row = (int)(x * 8 / WIDTH);
-		col = (int)(y * 8 / HEIGHT);
+		x = vars.p.x + (cos(angle) * 0.125);
+		y = vars.p.y + (sin(angle) * 0.125);
+		row = (int)x;
+		col = (int)y;
 		if (vars.maps[col][row] == '1')
 			vars.p.stop_right = 1;
 		glBegin(GL_POINTS);
-		glVertex2f(x, y);
+		glVertex2f(x * 107, y * 120);
 		glEnd();
 		angle += (10 * PI / 180);
 		if (angle > 2 * PI)
@@ -259,87 +266,33 @@ void Wall_C_right(void)
 
 void	drawRays()
 {
-	float	angle;
-	int		walls;
-	int		rows;
-	int		cols;
-	int		dof;
+	int	count = 849;
+	double	ang;
+	double	x;
+	double	y;
+	int		wall = 0;
 	
-	angle = vars.p.ang;
-	walls = 0;
-	rows = 0;
-	cols = 0;
-	dof = 0;
-	glColor3f(0, 1, 0);
-	glLineWidth(1);
-	while (dof < 3)
+	ang = vars.p.ang - (30 * (PI / 180));
+	count = 849;
+	while (count > 0)
 	{
-		angle -= (10 * PI / 180);
-		if (angle < 2 * PI)
-			angle += 2 * PI;
-		vars.p.dx = cos(angle) * 5;
-		vars.p.dy = sin(angle) * 5;
-		vars.p.r.x = vars.p.x + vars.p.dx;
-		vars.p.r.y = vars.p.y + vars.p.dy;
-		walls = 0;
-		while (!walls)
+		wall = 0;
+		x = vars.p.x;
+		y = vars.p.y;
+		while (!wall)
 		{
-			rows = (int)(vars.p.r.x * 8 / WIDTH);
-			cols = (int)(vars.p.r.y * 8 / HEIGHT);
-			if (vars.maps[cols][rows] == '1')
-				walls = 1;
-			vars.p.r.x += vars.p.dx;
-			vars.p.r.y += vars.p.dy;
+			x += cos(ang) * 0.012;
+			y += sin(ang) * 0.012;
+			if (vars.maps[(int)y][(int)x] == '1')
+				wall = 1;
 		}
-		glBegin(GL_LINES);
-		glVertex2i(vars.p.x, vars.p.y);
-		glVertex2i(vars.p.r.x, vars.p.r.y);
-		glEnd();
-		dof++;
-	}
-	angle = vars.p.ang;
-	vars.p.dx = cos(angle) * 5;
-	vars.p.dy = sin(angle) * 5;
-	vars.p.r.x = vars.p.x + vars.p.dx;
-	vars.p.r.y = vars.p.y + vars.p.dy;
-	walls = 0;
-	while (!walls)
-	{
-		rows = (int)(vars.p.r.x * 8 / WIDTH);
-		cols = (int)(vars.p.r.y * 8 / HEIGHT);
-		if (vars.maps[cols][rows] == '1')
-			walls = 1;
-		vars.p.r.x += vars.p.dx;
-		vars.p.r.y += vars.p.dy;
-	}
-	glBegin(GL_LINES);
-	glVertex2i(vars.p.x, vars.p.y);
-	glVertex2i(vars.p.r.x, vars.p.r.y);
-	glEnd();
-	while (dof < 6)
-	{
-		angle += (10 * PI / 180);
-		if (angle < 2 * PI)
-			angle += 2 * PI;
-		vars.p.dx = cos(angle) * 5;
-		vars.p.dy = sin(angle) * 5;
-		vars.p.r.x = vars.p.x + vars.p.dx;
-		vars.p.r.y = vars.p.y + vars.p.dy;
-		walls = 0;
-		while (!walls)
-		{
-			rows = (int)(vars.p.r.x * 8 / WIDTH);
-			cols = (int)(vars.p.r.y * 8 / HEIGHT);
-			if (vars.maps[cols][rows] == '1')
-				walls = 1;
-			vars.p.r.x += vars.p.dx;
-			vars.p.r.y += vars.p.dy;
-		}
-		glBegin(GL_LINES);
-		glVertex2i(vars.p.x, vars.p.y);
-		glVertex2i(vars.p.r.x, vars.p.r.y);
-		glEnd();
-		dof++;
+		glColor3f(1, 1, 0);
+		Draw_line_float(vars.p.x * 107, vars.p.y * 120, x * 107, y * 120);
+		vars.p.rays[849 - count].x = x;
+		vars.p.rays[849 - count].y = y;
+		vars.p.rays[849 - count].ang = ang;
+		count--;
+		ang += 0.0012334482346249678988860005431;
 	}
 	Wall_C_forwrd();
 	Wall_C_bckwrd();
@@ -353,13 +306,13 @@ void	buttons(unsigned char key, int x, int y)
 	int	col;
 	if (key == 'w')
 	{
-		vars.p.dx = cos(vars.p.ang) * 5;
-		vars.p.dy = sin(vars.p.ang) * 5;
+		vars.p.dx = cos(vars.p.ang) * 0.0525;
+		vars.p.dy = sin(vars.p.ang) * 0.0525;
 		if ((vars.p.x + vars.p.dx > 0) && (vars.p.x + vars.p.dx < WIDTH)
 		&& (vars.p.y + vars.p.dy > 0) && (vars.p.y + vars.p.dy < HEIGHT))
 		{
-			row = (int)((vars.p.x + vars.p.dx) * 8 / WIDTH);
-			col = (int)((vars.p.y + vars.p.dy) * 8 / HEIGHT);
+			row = (int)(vars.p.x + vars.p.dx);
+			col = (int)(vars.p.y + vars.p.dy);
 			if (vars.maps[col][row] == '1' || vars.p.stop_frwrd)
 				return ;
 			vars.p.x += vars.p.dx;
@@ -369,13 +322,13 @@ void	buttons(unsigned char key, int x, int y)
 	}
 	else if (key == 's')
 	{
-		vars.p.dx = cos(vars.p.ang) * 5;
-		vars.p.dy = sin(vars.p.ang) * 5;
-		if ((vars.p.x + vars.p.dx > 0) && (vars.p.x + vars.p.dx < WIDTH)
-		&& (vars.p.y + vars.p.dy > 0) && (vars.p.y + vars.p.dy < HEIGHT))
+		vars.p.dx = cos(vars.p.ang) * 0.0525;
+		vars.p.dy = sin(vars.p.ang) * 0.0525;
+		if ((vars.p.x - vars.p.dx > 0) && (vars.p.x - vars.p.dx < WIDTH)
+		&& (vars.p.y - vars.p.dy > 0) && (vars.p.y - vars.p.dy < HEIGHT))
 		{
-			row = (int)((vars.p.x - vars.p.dx) * 8 / WIDTH);
-			col = (int)((vars.p.y - vars.p.dy) * 8 / HEIGHT);
+			row = (int)((vars.p.x - vars.p.dx));
+			col = (int)(vars.p.y - vars.p.dy);
 			if (vars.maps[col][row] == '1' || vars.p.stop_bckwrd)
 				return ;
 			vars.p.x -= vars.p.dx;
@@ -385,13 +338,13 @@ void	buttons(unsigned char key, int x, int y)
 	}
 	else if (key == 'd')
 	{
-		vars.p.dx = cos((PI / 2) + (vars.p.ang)) * 5;
-		vars.p.dy = sin((PI / 2) + (vars.p.ang)) * 5;
+		vars.p.dx = cos((PI / 2) + (vars.p.ang)) * 0.0525;
+		vars.p.dy = sin((PI / 2) + (vars.p.ang)) * 0.0525;
 		if ((vars.p.x + vars.p.dx > 0) && (vars.p.x + vars.p.dx < WIDTH)
 		&& (vars.p.y + vars.p.dy > 0) && (vars.p.y + vars.p.dy < HEIGHT))
 		{
-			row = (int)((vars.p.x + vars.p.dx) * 8 / WIDTH);
-			col = (int)((vars.p.y + vars.p.dy) * 8 / HEIGHT);
+			row = (int)(vars.p.x + vars.p.dx);
+			col = (int)(vars.p.y + vars.p.dy);
 			if (vars.maps[col][row] == '1' || vars.p.stop_right)
 				return ;
 			vars.p.x += vars.p.dx;
@@ -401,13 +354,13 @@ void	buttons(unsigned char key, int x, int y)
 	}
 	else if (key == 'a')
 	{
-		vars.p.dx = cos((PI / 2) + (vars.p.ang)) * 5;
-		vars.p.dy = sin((PI / 2) + (vars.p.ang)) * 5;
+		vars.p.dx = cos((PI / 2) + (vars.p.ang)) * 0.0525;
+		vars.p.dy = sin((PI / 2) + (vars.p.ang)) * 0.0525;
 		if ((vars.p.x - vars.p.dx > 0) && (vars.p.x - vars.p.dx < WIDTH)
 		&& (vars.p.y - vars.p.dy > 0) && (vars.p.y - vars.p.dy < HEIGHT))
 		{
-			row = (int)((vars.p.x - vars.p.dx) * 8 / WIDTH);
-			col = (int)((vars.p.y - vars.p.dy) * 8 / HEIGHT);
+			row = (int)(vars.p.x - vars.p.dx);
+			col = (int)(vars.p.y - vars.p.dy);
 			if (vars.maps[col][row] == '1' || vars.p.stop_left)
 				return ;
 			vars.p.x -= vars.p.dx;
@@ -417,18 +370,26 @@ void	buttons(unsigned char key, int x, int y)
 	}
 	else if (key == 'k')
 	{
-		vars.p.ang += 0.1;
+		vars.p.ang += 0.3;
 		if (vars.p.ang > 2 * PI)
 			vars.p.ang -= 2 * PI;
 	}
 	else if (key == 'j')
 	{
-		vars.p.ang -= 0.1;
+		vars.p.ang -= 0.3;
 		if (vars.p.ang < 0)
 			vars.p.ang += 2 * PI;
 	}
 	else if (key == 27) { exit(0); }
 	glutPostRedisplay();
+}
+
+void	draw3DMap(void)
+{
+	glBegin(GL_LINES);
+	glVertex2i(863, 0);
+	glVertex2i(863, HEIGHT);
+	glEnd();
 }
 
 void	display()
@@ -437,6 +398,7 @@ void	display()
 	drawMap2D();
 	drawRays();
 	drawPlayer();
+	draw3DMap();
 	glutSwapBuffers();
 }
 
@@ -465,8 +427,8 @@ void	init()
 				break;
 		i++;
 	}
-	vars.p.x = j * (WIDTH/8) + (WIDTH / 16);
-	vars.p.y = i * (HEIGHT/8) + (HEIGHT / 16);
+	vars.p.x = j + 0.5 ;
+	vars.p.y = i + 0.5;
 }
 
 int main(int argc, char **argv)
