@@ -6,7 +6,9 @@
 #define WIDTH 1712
 #define HEIGHT 960
 #define RATIO_Y 107
-#define RATIO_X  
+#define RATIO_X 0 
+#define BLOCK_SIZE 8
+# define CONST 180
 
 typedef struct	s_rays
 {
@@ -46,6 +48,25 @@ void	Draw_line_float(double x_start, double y_start,
 	glVertex2f(x_start, y_start);
 	glVertex2f(x_end, y_end);
 	glEnd();
+}
+
+double	sq(double x)
+{
+	return (x * x);
+}
+
+double	get_dist(double x1, double x2, double y1, double y2)
+{
+	double	hyp;
+	double	adj;
+	static int	count;
+	
+	hyp = sqrt(sq(x2 - x1) + sq(y2 - y1));
+	adj = cos(vars.p.rays[count].ang - vars.p.ang) * hyp;
+	if (count == 849)
+		count = 0;
+	count++;
+	return (adj);
 }
 
 void	drawMap2D(void)
@@ -384,12 +405,40 @@ void	buttons(unsigned char key, int x, int y)
 	glutPostRedisplay();
 }
 
+double	get_height(int index)
+{
+	double	height;
+	
+	height = (BLOCK_SIZE * CONST) / vars.p.rays[index].dist;
+	if (height < 0)
+		height  = 0;
+	else if (height > HEIGHT)
+		height = HEIGHT;
+	return (height);
+}
+
 void	draw3DMap(void)
 {
-	glBegin(GL_LINES);
-	glVertex2i(863, 0);
-	glVertex2i(863, HEIGHT);
-	glEnd();
+	int	count;
+	int	x;
+	int	y;
+	
+	count = 0;
+	while (count < 849)
+	{
+		vars.p.rays[count].dist = get_dist(vars.p.x, vars.p.rays[count].x, vars.p.y, vars.p.rays[count].y);
+		vars.p.rays[count].height = get_height(count);
+		count++;
+	}
+	x = 0;
+	while(x < 849)
+	{
+		glBegin(GL_LINES);
+		glVertex2i(863 + x, ((HEIGHT / 2) - (vars.p.rays[x].height / 2)));
+		glVertex2i(863 + x, ((HEIGHT / 2) + (vars.p.rays[x].height / 2)));
+		glEnd();
+		x++;
+	}
 }
 
 void	display()
@@ -437,7 +486,7 @@ int main(int argc, char **argv)
 	
 	vars.maps = malloc(sizeof(char *) * (64 + 1));
 	vars.maps[0] = strdup("11111111");
-	vars.maps[1] = strdup("1000N101");
+	vars.maps[1] = strdup("10N00101");
 	vars.maps[2] = strdup("10001001");
 	vars.maps[3] = strdup("10010001");
 	vars.maps[4] = strdup("10000001");
