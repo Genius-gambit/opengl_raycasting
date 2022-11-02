@@ -285,55 +285,6 @@ void Wall_C_right(void)
 	}
 }
 
-static void	easy_raycast(int x_int, int y_int)
-{
-	double	x;
-	double	y;
-	double	change;
-	int		wall;
-	
-	wall = 0;
-	x = vars.p.x;
-	y = vars.p.y;
-	vars.p.dx = cos(vars.p.ang) * 0.01;
-	vars.p.dy = sin(vars.p.ang) * 0.01;
-	change = -vars.p.dy;
-	if (vars.p.dy == 0 || vars.p.ang == (3 * (PI / 2)))
-	{
-		x = x_int;
-		printf("check\n");
-		while (!wall)
-		{
-			if (vars.maps[y_int][(int)x] == '1')
-				wall = 1;
-			if (!wall)
-				x += cos(vars.p.ang); 
-		}
-	}
-	else if (vars.p.dx == 0 || vars.p.ang == PI)
-	{
-		y = y_int;
-		printf("check\n");
-		while (!wall)
-		{
-			if (vars.maps[(int)y][x_int] == '1')
-				wall = 1;
-			if (!wall)
-				y += sin(vars.p.ang); 
-		}
-	}
-	printf("Ang: %f\n", vars.p.ang);
-	/*printf("Row: %f\n", x);
-	printf("Change in X: %f\tChange in Y: %f\n", vars.p.dx, change);
-	printf("Col: %d\n", y_int);
-	printf("Char: %c\n", vars.maps[y_int][(int)x]);*/
-	glColor3f(0, 0, 1);
-	glPointSize(5);
-	glBegin(GL_POINTS);
-	glVertex2f(x * 107, y * 120);
-	glEnd();
-}
-
 double	abs_max(double dx, double dy)
 {
 	if (dx < 0)
@@ -343,7 +294,7 @@ double	abs_max(double dx, double dy)
 	return (dx > dy ? dx : dy);
 }
 
-static void check_grid()
+static void check_grid(double angle)
 {
 	double	dx;
 	double	dy;
@@ -352,46 +303,49 @@ static void check_grid()
 	double	y_incpt;
 	double	x;
 	double	y;
-	double	x1;
-	double	y1;
+	double	diff_old;
+	double	diff;
 	int		wall;
 	static int	counter;		
 	
-	dx = cos(vars.p.ang) * 0.01;
-	dy = sin(vars.p.ang) * 0.01;
-	x1 = vars.p.x;
-	y1 = vars.p.y;
+	dx = cos(vars.p.ang) * 0.001;
+	dy = sin(vars.p.ang) * 0.001;
+	x = vars.p.x;
+	y = vars.p.y;
+	diff_old = 0;
+	diff = 0;
 	wall = 0;
-	//printf("X: %f, Y: %f\n", x1, y1);
-	while ((int)x1 == (int)vars.p.x && (int)y1 == (int)vars.p.y)
+	while ((int)x == (int)vars.p.x && (int)y == (int)vars.p.y)
 	{
-		x1 += dx;
-		y1 += dy;
+		x += dx;
+		y += dy;
 	}
-	if (vars.maps[(int)y1][(int)x1] == '1')
+	if (vars.maps[(int)y][(int)x] == '1')
 		wall = 1;
 	if (wall == 1)
 	{
-		x = x1;
-		y = y1;
 		glColor3f(0, 0, 1);
 		glPointSize(5);
 		glBegin(GL_POINTS);
-		glVertex2f(x1 * 107, y1 * 120);
+		glVertex2f(x * 107, y * 120);
 		glEnd();
 		return ;
 	}
-	//printf("X: %f, Y: %f, dx: %f, dy: %f\n", x1, y1, dx, dy);
 	glColor3f(0, 0, 1);
 	glPointSize(5);
 	glBegin(GL_POINTS);
-	glVertex2f(x1 * 107, y1 * 120);
+	glVertex2f(x * 107, y * 120);
 	glEnd();
 	step = abs_max(dx, dy);
 	x_incpt = dx / step;
 	y_incpt = dy / step;
-	x = x1 + x_incpt;
-	y = y1 + y_incpt;
+	x += x_incpt;
+	y += y_incpt;
+	/*glColor3f(0, 0, 1);
+	glPointSize(5);
+	glBegin(GL_POINTS);
+	glVertex2f(x * 107, y * 120);
+	glEnd();*/
 	wall = 0;
 	counter = 0;
 	while (!wall)
@@ -400,20 +354,19 @@ static void check_grid()
 			wall = 1;
 		else if (vars.maps[(int)(y - 0.01)][(int)(x - 0.01)] == '1')
 			wall = 1;
-		else if (vars.maps[(int)(y + 0.001)][(int)(x + 0.001)] == '1')
+		else if (vars.maps[(int)(y + 0.01)][(int)(x + 0.01)] == '1')
 			wall = 1;
 		if (!wall)
 		{
-			x = x + x_incpt;
-			y = y + y_incpt;
-			glColor3f(0, 0, 1);
+			x += x_incpt;
+			y += y_incpt;
+			/*glColor3f(0, 0, 1);
 			glPointSize(5);
 			glBegin(GL_POINTS);
 			glVertex2f(x * 107, y * 120);
-			glEnd();
+			glEnd();*/
 		}
 		counter++;
-		//printf("Step: %f, x: %f, y: %f, x_incpt: %f, y_incpt: %f, origin_x: %f, origin_y: %f, change_in_x: %f, change_in_y: %f, wall: %d\n", step, x, y, x_incpt, y_incpt, vars.p.x, vars.p.y, dx, dy, wall);
 	}
 	while (wall == 1)
 	{
@@ -424,10 +377,6 @@ static void check_grid()
 	}
 	x += dx;
 	y += dy;
-	printf("x: %f, y: %f\n", x,y);
-	//printf("Char: %c\n", vars.maps[(int)7.5][(int)2.5]);
-	//printf("Step: %f, x: %f, y: %f, x_incpt: %f, y_incpt: %f, origin_x: %f, origin_y: %f, change_in_x: %f, change_in_y: %f, wall: %d\n", step, x, y, x_incpt, y_incpt, vars.p.x, vars.p.y, dx, dy, wall);
-	//printf("Counter: %d\n", counter);
 	glColor3f(0, 0, 1);
 	glPointSize(5);
 	glBegin(GL_POINTS);
@@ -450,7 +399,7 @@ void	drawRays()
 		wall = 0;
 		x = vars.p.x;
 		y = vars.p.y;
-		check_grid();
+		check_grid(ang);
 		while (!wall)
 		{
 			x += cos(ang) * 0.012;
@@ -458,7 +407,7 @@ void	drawRays()
 			if (vars.maps[(int)y][(int)x] == '1')
 				wall = 1;
 		}
-		//glColor3f(1, 1, 0);
+		glColor3f(1, 1, 0);
 		Draw_line_float(vars.p.x * 107, vars.p.y * 120, x * 107, y * 120);
 		vars.p.rays[849 - count].x = x;
 		vars.p.rays[849 - count].y = y;
