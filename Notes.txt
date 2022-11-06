@@ -1,0 +1,147 @@
+double	abs_max(double dx, double dy)
+{
+	if (dx < 0)
+		dx *= -1;
+	if (dy < 0)
+		dy *= -1;
+	return (dx > dy ? dx : dy);
+}
+
+static void check_grid(double angle)
+{
+	double	dx;
+	double	dy;
+	double	step;
+	double	x_incpt;
+	double	y_incpt;
+	double	x;
+	double	y;
+	double	diff_old;
+	double	diff;
+	int		wall;
+	static int	counter;		
+	
+	dx = cos(vars.p.ang) * 0.001;
+	dy = sin(vars.p.ang) * 0.001;
+	x = vars.p.x;
+	y = vars.p.y;
+	diff_old = 0;
+	diff = 0;
+	wall = 0;
+	while ((int)x == (int)vars.p.x && (int)y == (int)vars.p.y)
+	{
+		x += dx;
+		y += dy;
+	}
+	if (vars.maps[(int)y][(int)x] == '1')
+		wall = 1;
+	if (wall == 1)
+	{
+		glColor3f(0, 0, 1);
+		glPointSize(5);
+		glBegin(GL_POINTS);
+		glVertex2f(x * 107, y * 120);
+		glEnd();
+		return ;
+	}
+	glColor3f(0, 0, 1);
+	glPointSize(5);
+	glBegin(GL_POINTS);
+	glVertex2f(x * 107, y * 120);
+	glEnd();
+	step = abs_max(dx, dy);
+	x_incpt = dx / step;
+	y_incpt = dy / step;
+	x += x_incpt;
+	y += y_incpt;
+	/*glColor3f(0, 0, 1);
+	glPointSize(5);
+	glBegin(GL_POINTS);
+	glVertex2f(x * 107, y * 120);
+	glEnd();*/
+	wall = 0;
+	counter = 0;
+	while (!wall)
+	{
+		if (vars.maps[(int)y][(int)x] == '1')
+			wall = 1;
+		else if (vars.maps[(int)(y - 0.01)][(int)(x - 0.01)] == '1')
+			wall = 1;
+		else if (vars.maps[(int)(y + 0.01)][(int)(x + 0.01)] == '1')
+			wall = 1;
+		if (!wall)
+		{
+			x += x_incpt;
+			y += y_incpt;
+			glColor3f(0, 0, 1);
+			glPointSize(5);
+			glBegin(GL_POINTS);
+			glVertex2f(x * 107, y * 120);
+			glEnd();
+		}
+		counter++;
+	}
+	while (wall == 1)
+	{
+		x -= dx;
+		y -= dy;
+		if (vars.maps[(int)y][(int)x] == '0')
+			wall = 0;
+	}
+	x += dx;
+	y += dy;
+	glColor3f(0, 0, 1);
+	glPointSize(5);
+	glBegin(GL_POINTS);
+	glVertex2f(x * 107, y * 120);
+	glEnd();
+}
+
+
+
+
+if (diff_y > diff_x)
+		vars.p.y_trig = 1;
+	else if (diff_x > diff_y)
+		vars.p.x_trig = 1;
+	if (!iter)
+		printf("X: %f, Y: %f, diff_x: %f, diff_y: %f\n", x, y, diff_x, diff_y);
+	if (vars.p.y_trig == 1)
+	{
+		if (!iter)
+			printf("Diff\n");
+		x = dda_y(round(y), y - sin(vars.p.ang), x - cos(vars.p.ang));
+		y = round(y);
+		vars.p.y_trig = 0;
+	}
+	else if (vars.p.x_trig == 1)
+	{
+		if (!iter)
+			printf("Diff\n");
+		y = dda_x(round(x), x - cos(vars.p.ang), y - sin(vars.p.ang));
+		x = round(x);
+		vars.p.x_trig = 0;
+	}
+	else if (changed_grid(x, y, x - cos(vars.p.ang), y - sin(vars.p.ang)) == 'x')
+	{
+		//if (!iter)
+		//	printf("TraceX: %f\n");
+		y = dda_x((int)x, x - cos(vars.p.ang), y - sin(vars.p.ang));
+		x = (int)x;
+	}
+	else if (changed_grid(x, y, x - cos(vars.p.ang), y - sin(vars.p.ang)) == 'y')
+	{
+		if (!iter)
+			printf("TraceY\n");
+		x = dda_y((int)y, y - sin(vars.p.ang), x - cos(vars.p.ang));
+		y = (int)y;
+	}
+	if (!iter)
+		printf("X: %f, Y: %f, Ang: %f\n\n", x, y, vars.p.ang * 180 / PI);
+	iter++;
+	if (iter == 849)
+		iter = 0;
+
+
+Horizontal: y
+Vertical: x
