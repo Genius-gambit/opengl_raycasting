@@ -336,46 +336,40 @@ double	dda_y(double new_y, double old_y, double old_x)
 	return (x);
 }
 
+/**
+** side, which side of the wall hit, if x hit then side = 0, else side = 1
+**
+**/
 static void check_grid(double angle)
 {
+	double	cx;
+	double	cy;
 	double	dx;
 	double	dy;
-	double	step;
-	double	x_incpt;
-	double	y_incpt;
+	int		m_x;
+	int		m_y;
+	double	x_step;
+	double	y_step;
+	double	side_dist_x;
+	double	side_dist_y;
+	int		side;
+	double	perp_wall_dist;
 	double	x;
 	double	y;
-	double	diff_old;
-	double	diff;
 	int		wall;
-	static int	counter;
 	static int iter;
-	double	diff_x;
-	double	diff_y;
-	int		check;	
+	int		check;
 	
 	dx = cos(vars.p.ang) * 0.001;
 	dy = sin(vars.p.ang) * 0.001;
 	x = vars.p.x;
 	y = vars.p.y;
-	diff_old = 0;
-	diff = 0;
 	wall = 0;
 	while ((int)x == (int)vars.p.x && (int)y == (int)vars.p.y)
 	{
 		x += dx;
 		y += dy;
 	}
-	/*if ((int)x != (int)vars.p.x && (int)y == (int)vars.p.y)
-	{
-		y = dda_x((int)x, vars.p.x, y - dy);
-		x = (int)x;
-	}
-	else if ((int)x == (int)vars.p.x && (int)y != (int)vars.p.y)
-	{
-		x = dda_y((int)y, vars.p.y, x - dx);
-		y = (int)y;
-	}*/
 	if (vars.maps[(int)y][(int)x] == '1')
 		wall = 1;
 	if (wall == 1)
@@ -395,121 +389,101 @@ static void check_grid(double angle)
 	glBegin(GL_POINTS);
 	glVertex2f(x * 107, y * 120);
 	glEnd();
-	x += cos(vars.p.ang);
-	y += sin(vars.p.ang);
-	if (!iter)
-		printf("X: %f, Y: %f\n", x, y);
-	if (((int)x != (int)(x - cos(vars.p.ang))) || ((int)y != (int)(y - sin(vars.p.ang))))
+	cx = cos(vars.p.ang);
+	cy = sin(vars.p.ang);
+	dx = sqrt(1 + (sq(cy) / sq(cx)));
+	dy = sqrt(1 + (sq(cx) / sq(cy)));
+	m_x = (int)vars.p.x;
+	m_y = (int)vars.p.y;
+	if (cos(vars.p.ang) < 0)
 	{
-		if (((int)x != (int)(x - cos(vars.p.ang))) && ((int)y == (int)(y - sin(vars.p.ang))))
-		{
-			if (!iter)
-				printf("T-1\n");
-			if (x > x - cos(vars.p.ang))
-			{
-				y = dda_x((int)x, x - cos(vars.p.ang), y - sin(vars.p.ang));
-				x = (int)x;
-				check = 1;
-			}
-			else
-			{
-				y = dda_x((int)x + 1, x - cos(vars.p.ang), y - sin(vars.p.ang));
-				x = (int)x + 1;
-				check = 1;
-			}
-		}
-		else if (((int)x == (int)(x - cos(vars.p.ang))) && ((int)y != (int)(y - sin(vars.p.ang))))
-		{
-			if (!iter)
-				printf("T-2\n");
-			if ((int)y > (int)(y - sin(vars.p.ang)))
-			{
-				x = dda_y((int)y, y - sin(vars.p.ang), x - cos(vars.p.ang));
-				y = (int)y;
-				check = 1;
-			}
-			else
-			{
-				x = dda_y((int)y + 1, y - sin(vars.p.ang), x - cos(vars.p.ang));
-				y = (int)y + 1;
-				check = 1;
-			}
-		}
+		x_step = -1;
+		side_dist_x = (vars.p.x - (int)vars.p.x) * dx;
 	}
-	if (!check)
+	else
 	{
-		double	del_x;
-		double	del_y;
-		
-		del_x = cos(vars.p.ang);
-		del_y = sin(vars.p.ang);
-		if ((round(x) != round(x - del_x)) && (round(y) == round(y - del_y)))
-		{
-			if (del_x < 0)
-			{
-				y = (dda_x((int)x, x - cos(vars.p.ang), y - sin(vars.p.ang)));
-				x = (int)x;
-			}
-		}
+		x_step = 1;
+		side_dist_x = ((int)vars.p.x + 1.0 - vars.p.x) * dx;
 	}
-	if (!iter)
-		printf("X: %f, Y: %f, Ang: %f\n\n", x, y, vars.p.ang * 180 / PI);
+	if (sin(vars.p.ang) < 0)
+	{
+		y_step = -1;
+		side_dist_y = (vars.p.y - (int)vars.p.y) * dy;
+	}
+	else
+	{
+		y_step = 1;
+		side_dist_y = ((int)vars.p.y + 1.0 - vars.p.y) * dy;
+	}
+	while (!wall)
+	{
+		if (side_dist_x < side_dist_y)
+		{
+			side_dist_x += dx;
+			m_x += x_step;
+			side = 0;
+		}
+		else
+		{
+			side_dist_y += dy;
+			m_y += y_step;
+			side = 1;
+		}
+		if (vars.maps[m_y][m_x] == '1')
+			wall = 1;
+	}
 	glColor3f(0, 0, 1);
 	glPointSize(5);
 	glBegin(GL_POINTS);
 	glVertex2f(x * 107, y * 120);
 	glEnd();
-	//x += cos(vars.p.ang);
-	//y += sin(vars.p.ang);
+	if (side == 0)
+	{
+		if (cos(vars.p.ang) < 0)
+		{
+			x = m_x + 1;
+			y = dda_x(x, vars.p.x, vars.p.y);
+		}
+		else
+		{
+			x = m_x;
+			y = dda_x(x, vars.p.x, vars.p.y);
+		}
+	}
+	else
+	{
+		if (!iter)
+			printf("Sin value: %f\n", sin(vars.p.ang));
+		if (sin(vars.p.ang) < 0)
+		{
+			y = m_y + 1;
+			if (!iter)
+				printf("Y: %f\n", y);
+			x = dda_y(y, vars.p.y, vars.p.x);
+		}
+		else
+		{
+			y = m_y;
+			x = dda_y(y, vars.p.y, vars.p.x);
+		}
+	}
+	if (!iter)
+		printf("X: %f, Y: %f\n", x, y);
+	glColor3f(0, 0, 1);
+	glPointSize(5);
+	glBegin(GL_POINTS);
+	glVertex2f(x * 107, y * 120);
+	glEnd();
+	glColor3f(0, 1, 0);
+	glPointSize(5);
+	glBegin(GL_POINTS);
+	glVertex2f(m_x * 107, m_y * 120);
+	glEnd();
+	if (!iter)
+		printf("MX: %d, MY: %d\nSide_distX: %f, Side_distY: %f\n\n", (int)m_x, (int)m_y, side_dist_x, side_dist_y);
 	iter++;
 	if (iter == 849)
 		iter = 0;
-	//step = abs_max(dx, dy);
-	//x_incpt = dx / step;
-	//y_incpt = dy / step;
-	//x += x_incpt;
-	//y += y_incpt;
-	//glColor3f(0, 0, 1);
-	//glPointSize(5);
-	//glBegin(GL_POINTS);
-	//glVertex2f(x * 107, y * 120);
-	//glEnd();
-	//wall = 0;
-	//counter = 0;
-	//while (!wall)
-	//{
-	//	if (vars.maps[(int)y][(int)x] == '1')
-	//		wall = 1;
-	//	else if (vars.maps[(int)(y - 0.01)][(int)(x - 0.01)] == '1')
-	//		wall = 1;
-	//	else if (vars.maps[(int)(y + 0.01)][(int)(x + 0.01)] == '1')
-	//		wall = 1;
-	//	if (!wall)
-	//	{
-	//		x += x_incpt;
-	//		y += y_incpt;
-	//		glColor3f(0, 0, 1);
-	//		glPointSize(5);
-	//		glBegin(GL_POINTS);
-	//		glVertex2f(x * 107, y * 120);
-	//		glEnd();
-	//	}
-	//	counter++;
-	//}
-	//while (wall == 1)
-	//{
-	//	x -= dx;
-	//	y -= dy;
-	//	if (vars.maps[(int)y][(int)x] == '0')
-	//		wall = 0;
-	//}
-	//x += dx;
-	//y += dy;
-	//glColor3f(0, 0, 1);
-	//glPointSize(5);
-	//glBegin(GL_POINTS);
-	//glVertex2f(x * 107, y * 120);
-	//glEnd();
 }
 
 void	drawRays()
@@ -619,13 +593,13 @@ void	buttons(unsigned char key, int x, int y)
 	}
 	else if (key == 'k')
 	{
-		vars.p.ang += 0.3;
+		vars.p.ang += 0.1;
 		if (vars.p.ang > 2 * PI)
 			vars.p.ang -= 2 * PI;
 	}
 	else if (key == 'j')
 	{
-		vars.p.ang -= 0.3;
+		vars.p.ang -= 0.1;
 		if (vars.p.ang < 0)
 			vars.p.ang += 2 * PI;
 	}
